@@ -19,7 +19,7 @@ def get_layout():
         # --- HEADER SECTION ---
         html.Div(className='header', children=[
             # Use assets folder for Dash static files
-            html.Img(src='/assets/logo.png', alt="Logo", style={'height': '36px', 'width': 'auto', 'verticalAlign': 'middle'}),
+            html.Img(src='/static/logo.png', alt="Logo", style={'height': '36px', 'width': 'auto', 'verticalAlign': 'middle'}),
             html.H1("Testify "),
             html.Div(className='header-icons', children=[  # html.I(className='fas fa-bell'),
                 html.Div(className='profile-dropdown', children=[
@@ -98,6 +98,7 @@ def get_layout():
 
                 # --- THIS IS THE FIX FOR THE TABLE SCROLLING ---
                 html.Div(className="table-wrapper", children=[
+                    html.H1("Report Data"),
                     dash_table.DataTable(
                         id='detailed-test-table',
                         columns=[
