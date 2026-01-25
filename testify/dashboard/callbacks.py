@@ -110,7 +110,7 @@ def register_callbacks(dash_app):
         def update_kpi(jsonified_data):
             value = 0
             if jsonified_data:
-                df = pd.read_json(jsonified_data, orient='split')
+                df = pd.read_json(StringIO(jsonified_data), orient='split')
                 if not df.empty:
                     value = logic_function(df)
             return [html.H4(title, className='card-title'), html.H2(f"{value:,}", className='card-value')]
