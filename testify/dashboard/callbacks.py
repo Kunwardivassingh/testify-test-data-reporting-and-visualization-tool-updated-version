@@ -7,6 +7,8 @@ from models.test_data import TestData
 import requests # Make sure to import the requests library
 from urllib.parse import unquote
 from flask_login import login_required  # <-- Add this import
+from io import StringIO
+
 def register_callbacks(dash_app):
     @login_required
 
@@ -130,7 +132,7 @@ def register_callbacks(dash_app):
     def update_line_chart(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         df['execution_date'] = pd.to_datetime(df['execution_date'])
         data_over_time = df.groupby(df['execution_date'].dt.date).size().reset_index(name='count')
         fig = px.line(data_over_time, x='execution_date', y='count', title='Test Results Over Time')
@@ -141,7 +143,7 @@ def register_callbacks(dash_app):
     def update_pie_chart(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         status_counts = df['status'].value_counts()
         fig = px.pie(values=status_counts.values, names=status_counts.index, title='Test Status Distribution', hole=.3)
         fig.update_layout(chart_layout)
@@ -151,7 +153,7 @@ def register_callbacks(dash_app):
     def update_stacked_bar_chart(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         df_counts = df.groupby(['product_name', 'status']).size().reset_index(name='count')
         fig = px.bar(df_counts, x='product_name', y='count', color='status', title='Pass/Fail Rate by Product', barmode='stack')
         fig.update_layout(chart_layout)
@@ -161,7 +163,7 @@ def register_callbacks(dash_app):
     def update_scatter_plot(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         fig = px.scatter(df, x='execution_date', y='test_duration', color='status', title='Test Duration vs. Date')
         fig.update_layout(chart_layout)
         return fig
@@ -170,7 +172,7 @@ def register_callbacks(dash_app):
     def update_box_plot(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         fig = px.box(df, x='test_type', y='test_duration', color='test_type', title='Test Duration Variability')
         fig.update_layout(chart_layout)
         return fig
@@ -179,7 +181,7 @@ def register_callbacks(dash_app):
     def update_donut_chart(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         tester_counts = df['test_type'].value_counts()
         fig = px.pie(values=tester_counts.values, names=tester_counts.index, title='Workload by Test Type', hole=.5)
         fig.update_layout(chart_layout)
@@ -189,7 +191,7 @@ def register_callbacks(dash_app):
     def update_area_chart(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         df['execution_date'] = pd.to_datetime(df['execution_date']).dt.date
         df_cumulative = df.groupby('execution_date').size().cumsum().reset_index(name='cumulative_tests')
         fig = px.area(df_cumulative, x='execution_date', y='cumulative_tests', title='Cumulative Test Coverage')
@@ -200,7 +202,7 @@ def register_callbacks(dash_app):
     def update_heatmap(json_data):
         fig = go.Figure(layout=chart_layout)
         if not json_data: return fig
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         df['day_of_week'] = pd.to_datetime(df['execution_date']).dt.day_name()
         heatmap_data = df.groupby(['day_of_week', 'product_name']).size().reset_index(name='count')
         heatmap_pivot = heatmap_data.pivot(index='day_of_week', columns='product_name', values='count').fillna(0)
@@ -211,7 +213,7 @@ def register_callbacks(dash_app):
     @dash_app.callback(Output('detailed-test-table', 'data'), Input('filtered-data-store', 'data'))
     def update_table(json_data):
         if not json_data: return []
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         df['duration_str'] = df['test_duration'].apply(lambda x: f"{int(x // 60)}m {int(x % 60)}s" if pd.notna(x) else 'N/A')
         df['execution_date_str'] = pd.to_datetime(df['execution_date']).dt.strftime('%Y-%m-%d')
         return df.to_dict('records')
@@ -225,7 +227,7 @@ def register_callbacks(dash_app):
     )
     def export_csv(n_clicks, json_data):
         if not json_data: return None
-        df = pd.read_json(json_data, orient='split')
+        df = pd.read_json(StringIO(json_data), orient='split')
         return dcc.send_data_frame(df.to_csv, "test_insights_export.csv", index=False)
 
     dash_app.clientside_callback(
